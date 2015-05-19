@@ -10,7 +10,7 @@ module Aws
       # @param [Hash, Array, nil] target
       # @return [Hash]
       def parse(shape, json, target = nil)
-        parse_shape(shape, MultiJson.load(json, max_nesting: false), target)
+        structure(shape, MultiJson.load(json, max_nesting: false), target)
       end
 
       private
@@ -34,8 +34,8 @@ module Aws
       # @param [Array] values
       # @param [Array, nil] target
       # @return [Array]
-      def list(list, values, target = nil)
-        target = [] if target.nil?
+      def list(list, values)
+        target = []
         values.each { |value| target << parse_shape(list.member, value) }
         target
       end
@@ -43,8 +43,8 @@ module Aws
       # @param [Seahorse::Model::Shapes::Map] map
       # @param [Hash] values
       # @return [Hash]
-      def map(map, values, target = nil)
-        target = {} if target.nil?
+      def map(map, values)
+        target = {}
         values.each do |key, value|
           target[key] = parse_shape(map.value, value)
         end
@@ -55,14 +55,14 @@ module Aws
       # @param [Object] value
       # @param [Hash, Array, nil] target
       # @return [Object]
-      def parse_shape(shape, value, target = nil)
+      def parse_shape(shape, value)
         if value.nil?
           nil
         else
           case shape
-          when Seahorse::Model::Shapes::Structure then structure(shape, value, target)
-          when Seahorse::Model::Shapes::List then list(shape, value, target)
-          when Seahorse::Model::Shapes::Map then map(shape, value, target)
+          when Seahorse::Model::Shapes::Structure then structure(shape, value)
+          when Seahorse::Model::Shapes::List then list(shape, value)
+          when Seahorse::Model::Shapes::Map then map(shape, value)
           when Seahorse::Model::Shapes::Timestamp then time(value)
           when Seahorse::Model::Shapes::Blob then Base64.decode64(value)
           when Seahorse::Model::Shapes::Boolean then value.to_s == 'true'
